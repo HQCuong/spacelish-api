@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: spacelish-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: spacelish_dev
+      POSTGRES_USER: spacelish_user
+      POSTGRES_PASSWORD: spacelish_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    networks:
+      - spacelish-network
+
+  # pgAdmin - Web interface for PostgreSQL management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: spacelish-pgadmin-dev
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@spacelish.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_dev_data:/var/lib/pgadmin
+    networks:
+      - spacelish-network
+    depends_on:
+      - postgres
+
+  # NestJS Application (Development with hot reload)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: spacelish-app-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      # Database connection
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: spacelish_user
+      DB_PASSWORD: spacelish_password
+      DB_DATABASE: spacelish_dev
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Debug port
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./logs:/app/logs
+    networks:
+      - spacelish-network
+    depends_on:
+      - postgres
+    command: npm run start:dev
+
+volumes:
+  postgres_dev_data:
+    driver: local
+  pgadmin_dev_data:
+    driver: local
+
+networks:
+  spacelish-network:
+    driver: bridge
