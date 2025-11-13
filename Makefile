@@ -1,6 +1,6 @@
 # Spacelish API Docker Management
 
-.PHONY: help build up down logs clean dev prod restart
+.PHONY: help build up down logs clean dev prod restart dev-stop dev-restart stop clean-containers
 
 # Default target
 help: ## Show this help message
@@ -17,8 +17,14 @@ dev-build: ## Build and start development environment
 dev-logs: ## Show development logs
 	docker-compose -f docker-compose.dev.yml logs -f
 
-dev-down: ## Stop development environment
+dev-stop: ## Stop development environment (keep containers)
+	docker-compose -f docker-compose.dev.yml stop
+
+dev-down: ## Stop and remove development containers (volumes preserved)
 	docker-compose -f docker-compose.dev.yml down
+
+dev-restart: ## Restart development environment
+	docker-compose -f docker-compose.dev.yml restart
 
 # Production commands
 build: ## Build production images
@@ -30,7 +36,10 @@ up: ## Start production environment
 prod: ## Build and start production environment
 	docker-compose up --build -d
 
-down: ## Stop production environment
+stop: ## Stop production environment (keep containers)
+	docker-compose stop
+
+down: ## Stop and remove production containers (volumes preserved)
 	docker-compose down
 
 restart: ## Restart production environment
@@ -50,15 +59,20 @@ pgadmin: ## Open pgAdmin in browser
 	@open http://localhost:8080 2>/dev/null || echo "Please open http://localhost:8080 manually"
 
 # Maintenance commands
-clean: ## Clean up containers, volumes, and images
+clean: ## Remove containers and volumes (WILL DELETE DATABASE)
 	docker-compose down -v
 	docker-compose -f docker-compose.dev.yml down -v
 	docker system prune -f
 
-clean-all: ## Clean up everything including images
+clean-all: ## Remove everything including images (WILL DELETE DATABASE)
 	docker-compose down -v --rmi all
 	docker-compose -f docker-compose.dev.yml down -v --rmi all
 	docker system prune -af
+
+clean-containers: ## Remove only containers (database preserved)
+	docker-compose down
+	docker-compose -f docker-compose.dev.yml down
+	docker system prune -f
 
 # Health checks
 status: ## Show container status

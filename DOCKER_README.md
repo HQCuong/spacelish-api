@@ -36,8 +36,14 @@ make dev-build
 # View development logs
 make dev-logs
 
-# Stop development environment
+# Stop development environment (keep containers for quick restart)
+make dev-stop
+
+# Stop and remove development containers (database preserved)
 make dev-down
+
+# Restart development environment
+make dev-restart
 ```
 
 ### 2. Production Environment
@@ -48,6 +54,19 @@ make build
 
 # Start production environment
 make up
+
+# Build and start production environment
+make prod
+
+# Stop production environment (keep containers for quick restart)
+make stop
+
+# Stop and remove production containers (database preserved)
+make down
+
+# Restart production environment
+make restart
+```
 
 # Build and start production environment
 make prod
@@ -87,12 +106,21 @@ make health
 # Access app container shell
 make shell
 
-# Clean up (without removing volumes)
+# Remove only containers (database preserved)
+make clean-containers
+
+# Remove containers and volumes (WILL DELETE DATABASE!)
 make clean
 
-# Clean up everything (including images)
+# Remove everything including images (WILL DELETE DATABASE!)
 make clean-all
 ```
+
+**⚠️ Important Notes:**
+- `dev-stop` / `stop`: Only stops containers, can restart quickly
+- `dev-down` / `down`: Removes containers but keeps database volumes
+- `clean`: Removes containers AND volumes (database will be lost!)
+- `clean-all`: Removes everything including Docker images
 
 ## Access Information
 
