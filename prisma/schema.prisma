@@ -1,0 +1,134 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client"
+  output        = "../generated/prisma"
+  moduleFormat  = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id              String   @id @default(uuid())
+  email           String   @unique
+  passwordHash    String
+  isEmailVerified Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tokens      Token[]
+  words       Word[]
+  collections Collection[]
+  reviewLogs  ReviewLog[]
+}
+
+model Token {
+  id        String    @id @default(uuid())
+  token     String    @unique
+  type      TokenType
+  expiresAt DateTime
+  isRevoked Boolean   @default(false)
+
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, type])
+}
+
+model Word {
+  id          String   @id @default(uuid())
+  term        String
+  meaning     String
+  type      WordType
+
+  phonetic    String?
+  example     String?
+
+  // SRS fields (SM-2)
+  easeFactor  Float   @default(2.5)
+  interval    Int     @default(1)
+  repetition  Int     @default(0)
+  nextReview  DateTime
+
+  userId      String
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  collections CollectionWord[]
+  reviewLogs  ReviewLog[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, term])
+  @@index([userId, nextReview])
+}
+
+model Collection {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+
+  userId      String
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  words       CollectionWord[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, name])
+}
+
+model CollectionWord {
+  collectionId  String
+  wordId        String
+
+  collection    Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  word          Word       @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, wordId])
+}
+
+model ReviewLog {
+  id          String @id @default(uuid())
+
+  userId      String
+  wordId      String
+
+  quality     Int        // 0–5
+  reviewedAt  DateTime @default(now())
+
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word        Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@index([userId, reviewedAt])
+}
+
+enum TokenType {
+  EMAIL_VERIFICATION
+  REFRESH_TOKEN
+  RESET_PASSWORD
+}
+
+enum WordType {
+  NOUN
+  VERB
+  ADJECTIVE
+  ADVERB
+  PRONOUN
+  PREPOSITION
+  CONJUNCTION
+  INTERJECTION
+  PHRASE
+  PHRASAL_VERB
+  IDIOM
+}
