@@ -10,7 +10,7 @@ pids
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like istanbul
+# Coverage directory
 coverage
 
 # Compiled binary addons
@@ -42,10 +42,7 @@ jspm_packages/
 
 # Environment variables
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
 
 # IDE
 .vscode/
@@ -66,15 +63,26 @@ logs
 Dockerfile*
 docker-compose*
 .dockerignore
+docker/
+DOCKER_README.md
 
 # Git
 .git
 .gitignore
 README.md
 
-# Test
+# Tests
 test/
-
-# Development files
 src/**/*.spec.ts
 src/**/*.test.ts
+
+# Build output (generated in image, not needed from host)
+dist/
+
+# Generated prisma client (will be generated inside image)
+generated/
+
+# Misc
+.claude/
+.agents/
+Makefile
