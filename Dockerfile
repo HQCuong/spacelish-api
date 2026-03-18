@@ -6,22 +6,18 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Copy package files and config needed for build
-COPY package*.json ./
+COPY package.json yarn.lock ./
 COPY tsconfig*.json ./
 COPY nest-cli.json ./
 
 # Install ALL dependencies (devDependencies needed for build: typescript, nest cli, etc.)
-RUN npm ci && npm cache clean --force
-
-# Copy prisma schema and generate client
-COPY prisma/ ./prisma/
-RUN npx prisma generate
+RUN yarn install --frozen-lockfile
 
 # Copy source code
 COPY src/ ./src/
 
 # Build the application
-RUN npm run build
+RUN yarn build
 
 # Stage 2: Production
 FROM node:22-alpine AS production
@@ -29,12 +25,8 @@ FROM node:22-alpine AS production
 WORKDIR /app
 
 # Copy package files and install only production dependencies
-COPY package*.json ./
-COPY prisma/ ./prisma/
-RUN npm ci --omit=dev && npm cache clean --force
-
-# Generate Prisma client in production image
-RUN npx prisma generate
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile --production && yarn cache clean
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist

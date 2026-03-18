@@ -79,9 +79,6 @@ src/**/*.test.ts
 # Build output (generated in image, not needed from host)
 dist/
 
-# Generated prisma client (will be generated inside image)
-generated/
-
 # Misc
 .claude/
 .agents/

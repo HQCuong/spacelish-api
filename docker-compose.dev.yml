@@ -63,7 +63,6 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-      - /app/generated
       - ./logs:/app/logs
     networks:
       - spacelish-network
