@@ -13,6 +13,10 @@ COPY nest-cli.json ./
 # Install ALL dependencies (devDependencies needed for build: typescript, nest cli, etc.)
 RUN yarn install --frozen-lockfile
 
+# Generate Prisma client
+COPY prisma/ ./prisma/
+RUN npx prisma generate
+
 # Copy source code
 COPY src/ ./src/
 
