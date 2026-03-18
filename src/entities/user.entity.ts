@@ -6,24 +6,40 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { Token } from './token.entity';
-import { Word } from './word.entity';
-import { Collection } from './collection.entity';
-import { ReviewLog } from './review-log.entity';
+import { AuthProvider } from '../common/enums/auth-provider.enum';
+import { UserOauthAccount } from './user-oauth-account.entity';
+import { UserToken } from './user-token.entity';
+import { Deck } from './deck.entity';
+import { Review } from './review.entity';
 
-@Entity()
+@Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column({ unique: true })
+  @Column({ type: 'varchar', unique: true })
+  username: string;
+
+  @Column({ type: 'varchar', unique: true })
   email: string;
 
-  @Column()
+  @Column({ type: 'varchar', nullable: true })
   passwordHash: string;
 
+  @Column({ type: 'varchar', nullable: true })
+  avatarUrl: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  timezone: string;
+
   @Column({ default: false })
-  isEmailVerified: boolean;
+  emailVerified: boolean;
+
+  @Column({ type: 'enum', enum: AuthProvider, default: AuthProvider.LOCAL })
+  authProvider: AuthProvider;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastLoginAt: Date;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -31,15 +47,15 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => Token, (token) => token.user)
-  tokens: Token[];
+  @OneToMany(() => UserOauthAccount, (oauth) => oauth.user)
+  oauthAccounts: UserOauthAccount[];
 
-  @OneToMany(() => Word, (word) => word.user)
-  words: Word[];
+  @OneToMany(() => UserToken, (token) => token.user)
+  tokens: UserToken[];
 
-  @OneToMany(() => Collection, (collection) => collection.user)
-  collections: Collection[];
+  @OneToMany(() => Deck, (deck) => deck.user)
+  decks: Deck[];
 
-  @OneToMany(() => ReviewLog, (reviewLog) => reviewLog.user)
-  reviewLogs: ReviewLog[];
+  @OneToMany(() => Review, (review) => review.user)
+  reviews: Review[];
 }

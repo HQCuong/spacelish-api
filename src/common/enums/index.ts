@@ -1,2 +1,2 @@
-export { TokenType } from './token-type.enum';
-export { WordType } from './word-type.enum';
+export { AuthProvider } from './auth-provider.enum';
+export { CardStatus } from './card-status.enum';

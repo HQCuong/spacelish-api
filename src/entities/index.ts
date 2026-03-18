@@ -1,6 +1,6 @@
 export { User } from './user.entity';
-export { Token } from './token.entity';
-export { Word } from './word.entity';
-export { Collection } from './collection.entity';
-export { CollectionWord } from './collection-word.entity';
-export { ReviewLog } from './review-log.entity';
+export { UserOauthAccount } from './user-oauth-account.entity';
+export { UserToken } from './user-token.entity';
+export { Deck } from './deck.entity';
+export { Card } from './card.entity';
+export { Review } from './review.entity';
