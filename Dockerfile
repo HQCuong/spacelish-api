@@ -15,6 +15,7 @@ RUN yarn install --frozen-lockfile
 
 # Generate Prisma client
 COPY prisma/ ./prisma/
+COPY prisma.config.ts ./
 RUN npx prisma generate
 
 # Copy source code
