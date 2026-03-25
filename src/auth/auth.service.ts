@@ -35,12 +35,12 @@ export class AuthService {
       throw new ConflictException('Email already exists');
     }
 
-    // Check duplicate username
-    const existingUsername = await this.prisma.user.findUnique({
-      where: { username: dto.username },
+    // Check duplicate name
+    const existingName = await this.prisma.user.findUnique({
+      where: { name: dto.name },
     });
-    if (existingUsername) {
-      throw new ConflictException('Username already exists');
+    if (existingName) {
+      throw new ConflictException('Name already exists');
     }
 
     // Hash password
@@ -49,7 +49,7 @@ export class AuthService {
     // Create user
     const user = await this.prisma.user.create({
       data: {
-        username: dto.username,
+        name: dto.name,
         email: dto.email,
         passwordHash,
         authProvider: 'LOCAL',
