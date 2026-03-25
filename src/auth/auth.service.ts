@@ -111,14 +111,14 @@ export class AuthService {
     // Access token - short-lived
     const accessToken = this.jwtService.sign(
       { sub: userId, type: 'access' },
-      { expiresIn: this.configService.get('JWT_ACCESS_EXPIRATION') },
+      { expiresIn: this.configService.getOrThrow('JWT_ACCESS_EXPIRATION') },
     );
 
     // Refresh token - long-lived, with jti for identification
     const jti = randomUUID();
     const refreshToken = this.jwtService.sign(
       { sub: userId, type: 'refresh', jti },
-      { expiresIn: this.configService.get('JWT_REFRESH_EXPIRATION') },
+      { expiresIn: this.configService.getOrThrow('JWT_REFRESH_EXPIRATION') },
     );
 
     // Hash refresh token with SHA-256 and store in DB
