@@ -40,6 +40,16 @@ services:
       postgres:
         condition: service_healthy
 
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: spacelish-mailhog-dev
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - spacelish-network
+
   app:
     build:
       context: .
