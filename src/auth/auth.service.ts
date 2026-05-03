@@ -25,9 +25,7 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  // ======== 1. REGISTER ========
   async register(dto: RegisterDto) {
-    // Check duplicate email
     const existingEmail = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -35,7 +33,6 @@ export class AuthService {
       throw new ConflictException('Email already exists');
     }
 
-    // Check duplicate name
     const existingName = await this.prisma.user.findUnique({
       where: { name: dto.name },
     });
@@ -43,10 +40,8 @@ export class AuthService {
       throw new ConflictException('Name already exists');
     }
 
-    // Hash password
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
-    // Create user
     const user = await this.prisma.user.create({
       data: {
         name: dto.name,
@@ -56,7 +51,6 @@ export class AuthService {
       },
     });
 
-    // Generate tokens
     const tokens = await this.generateTokens(user.id);
 
     return {
@@ -65,18 +59,15 @@ export class AuthService {
     };
   }
 
-  // ======== 2. VALIDATE USER (used by LocalStrategy) ========
   async validateUser(email: string, password: string) {
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
 
-    // User not found or no password (OAuth user)
     if (!user || !user.passwordHash) {
       return null;
     }
 
-    // Compare password
     const isMatch = await bcrypt.compare(password, user.passwordHash);
 
     if (!isMatch) {
@@ -86,9 +77,7 @@ export class AuthService {
     return user;
   }
 
-  // ======== 3. LOGIN ========
   async login(user: User, deviceInfo?: string, ipAddress?: string) {
-    // Update lastLoginAt
     await this.prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
@@ -102,26 +91,22 @@ export class AuthService {
     };
   }
 
-  // ======== 4. GENERATE TOKENS ========
   async generateTokens(
     userId: number,
     deviceInfo?: string,
     ipAddress?: string,
   ) {
-    // Access token - short-lived
     const accessToken = this.jwtService.sign(
       { sub: userId, type: 'access' },
       { expiresIn: this.configService.getOrThrow('JWT_ACCESS_EXPIRATION') },
     );
 
-    // Refresh token - long-lived, with jti for identification
     const jti = randomUUID();
     const refreshToken = this.jwtService.sign(
       { sub: userId, type: 'refresh', jti },
       { expiresIn: this.configService.getOrThrow('JWT_REFRESH_EXPIRATION') },
     );
 
-    // Hash refresh token with SHA-256 and store in DB
     const tokenHash = createHash('sha256').update(refreshToken).digest('hex');
 
     const expirationDays =
@@ -141,13 +126,11 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  // ======== 5. REFRESH TOKENS ========
   async refreshTokens(
     refreshToken: string,
     deviceInfo?: string,
     ipAddress?: string,
   ) {
-    // Verify JWT
     let payload: JwtPayload;
     try {
       payload = this.jwtService.verify<JwtPayload>(refreshToken);
@@ -159,7 +142,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid token type');
     }
 
-    // Hash incoming token and compare with DB
     const tokenHash = createHash('sha256').update(refreshToken).digest('hex');
 
     const storedToken = await this.prisma.userToken.findFirst({
@@ -175,7 +157,6 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token not found or revoked');
     }
 
-    // Revoke old token
     await this.prisma.userToken.update({
       where: { id: storedToken.id },
       data: {
@@ -184,11 +165,9 @@ export class AuthService {
       },
     });
 
-    // Generate new token pair (rotation)
     return this.generateTokens(payload.sub, deviceInfo, ipAddress);
   }
 
-  // ======== 6. LOGOUT ========
   async logout(refreshToken: string) {
     let payload: JwtPayload;
     try {
@@ -211,7 +190,6 @@ export class AuthService {
     return { message: 'Logged out successfully' };
   }
 
-  // ======== HELPER: Strip passwordHash from user object ========
   private sanitizeUser(user: User): Omit<User, 'passwordHash'> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { passwordHash, ...sanitized } = user;

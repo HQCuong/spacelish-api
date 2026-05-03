@@ -96,6 +96,7 @@ model Deck {
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   cards Card[]
 
+  @@unique([userId, name])
   @@map("decks")
 }
 
